@@ -1,25 +1,35 @@
 version: "3"
 
 services:
+
+  web:
+    build: docker/symfony
+    restart: always
+    networks:
+      - carner.net
+    ports:
+      - "8077:80"
+    volumes:
+      - ./docker/symfony/vhosts:/etc/apache2/sites-enabled
+      - ./:/var/www
+
   database:
     image: mariadb
     networks:
-      - lifesaver.net
+      - carner.net
     environment:
-      - MYSQL_ROOT_PASSWORD=rootpass
-      - MYSQL_USER=testuser
-      - MYSQL_PASSWORD=testpassword
-      - MYSQL_DATABASE=lifesaver
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=carner
     ports:
-      - '3306:3306'
+      - '3307:3306'
 
   adminer:
     image: adminer
     networks:
-      - lifesaver.net
+      - carner.net
     ports:
-      - "8080:8080"
+      - "8007:8080"
 
 networks:
-  lifesaver.net:
+  carner.net:
     external: true
