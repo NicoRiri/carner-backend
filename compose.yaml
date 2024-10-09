@@ -1,17 +1,26 @@
-version: "3"
+version: '3.8'
 
 services:
-
-  web:
-    build: docker/symfony
-    restart: always
+  php-fpm:
+    build:
+      context: .
+      dockerfile: docker/symfony/dockerfile
+    volumes:
+      - ./:/var/www/symfony
     networks:
       - carner.net
-    ports:
-      - "8077:80"
+
+  nginx:
+    image: nginx:alpine
     volumes:
-      - ./docker/symfony/vhosts:/etc/apache2/sites-enabled
-      - ./:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d/
+      - ./:/var/www/symfony
+    ports:
+      - "80:80"
+    networks:
+      - carner.net
+    depends_on:
+      - php-fpm
 
   database:
     image: mariadb
@@ -19,9 +28,9 @@ services:
       - carner.net
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=carner
+      - MYSQL_DATABASE=Carner
     ports:
-      - '3307:3306'
+      - '3306:3306'
 
   adminer:
     image: adminer
