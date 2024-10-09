@@ -20,7 +20,7 @@ USER root
 WORKDIR /var/www/symfony
 
 # Copier le code de l'application
-COPY your-symfony-app/ .
+COPY . .
 
 # Changer les permissions pour le répertoire de l'application
 RUN chown -R symfonyuser:symfonyuser /var/www/symfony
