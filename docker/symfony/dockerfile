@@ -1,28 +1,35 @@
 # Utiliser l'image PHP-FPM
 FROM php:8.3-fpm
 
-# Installer les dépendances pour Symfony
+# Installer les dépendances nécessaires
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql
 
 # Créer un utilisateur non-root
 RUN useradd -m symfonyuser
 
-# Passer à l'utilisateur non-root
-USER symfonyuser
-
-# Installer Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Passer au nouvel utilisateur avant de changer les permissions
+USER root
 
 # Définir le répertoire de travail
 WORKDIR /var/www/symfony
 
 # Copier le code de l'application
-COPY . .
+COPY your-symfony-app/ .
+
+# Changer les permissions pour le répertoire de l'application
+RUN chown -R symfonyuser:symfonyuser /var/www/symfony
+
+# Passer à l'utilisateur non-root
+USER symfonyuser
+
+# Installer Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Installer les dépendances de Symfony
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
