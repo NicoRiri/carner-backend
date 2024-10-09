@@ -28,6 +28,8 @@ RUN mkdir -p /var/www/symfony/public/media
 # Changer les permissions pour le répertoire de l'application
 RUN chown -R symfonyuser:symfonyuser /var/www/symfony
 
+RUN chmod -R 777 /var/www/symfony/public/media
+
 # Passer à l'utilisateur non-root
 USER symfonyuser
 
