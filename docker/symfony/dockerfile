@@ -22,14 +22,11 @@ WORKDIR /var/www/symfony
 # Copier le code de l'application
 COPY . .
 
-# Changer les permissions pour le répertoire de l'application
-RUN chown -R symfonyuser:symfonyuser /var/www/symfony
-
 # Créer le répertoire s'il n'existe pas
 RUN mkdir -p /var/www/symfony/public/media
 
-# Changer les permissions du répertoire
-RUN chown -R symfonyuser:symfonyuser /var/www/symfony/public/media
+# Changer les permissions pour le répertoire de l'application
+RUN chown -R symfonyuser:symfonyuser /var/www/symfony
 
 # Passer à l'utilisateur non-root
 USER symfonyuser
