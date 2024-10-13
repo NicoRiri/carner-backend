@@ -41,6 +41,19 @@ class ArticleController extends AbstractController
         }
     }
 
+    #[Route('/api/cart/{id}/{status}', name: 'api.cart.status', methods: ['PATCH'])]
+    public function editStatus(int $id, bool $status): Response
+    {
+        try {
+            $this->articleService->setArticleStatut($id, $status);
+            return $this->json(["message" => "Status changed successfully"], Response::HTTP_OK);
+        } catch (ArticleNotFound $e) {
+            return $this->json(["error" => $e->getMessage()], Response::HTTP_NOT_FOUND);
+        } catch (ArticleNotAlreadyInCart $e) {
+            return $this->json(["error" => $e->getMessage()], Response::HTTP_CONFLICT);
+        }
+    }
+
     #[Route('/api/cart/{id}', name: 'api.cartrm', methods: ['DELETE'])]
     public function removeArticleOfUser(int $id): Response
     {

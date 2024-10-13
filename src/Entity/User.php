@@ -32,21 +32,21 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     private ?string $password = null;
 
     /**
-     * @var Collection<int, Article>
-     */
-    #[ORM\ManyToMany(targetEntity: Article::class, inversedBy: 'users')]
-    private Collection $articles;
-
-    /**
      * @var Collection<int, AccessToken>
      */
     #[ORM\OneToMany(targetEntity: AccessToken::class, mappedBy: 'user')]
     private Collection $accessTokens;
 
+    /**
+     * @var Collection<int, Liste>
+     */
+    #[ORM\OneToMany(targetEntity: Liste::class, mappedBy: 'owner')]
+    private Collection $listes;
+
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
         $this->accessTokens = new ArrayCollection();
+        $this->listes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -116,30 +116,6 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     }
 
     /**
-     * @return Collection<int, Article>
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Article $article): static
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles->add($article);
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): static
-    {
-        $this->articles->removeElement($article);
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, AccessToken>
      */
     public function getAccessTokens(): Collection
@@ -167,6 +143,46 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Liste>
+     */
+    public function getListes(): Collection
+    {
+        return $this->listes;
+    }
+
+    public function addListe(Liste $liste): static
+    {
+        if (!$this->listes->contains($liste)) {
+            $this->listes->add($liste);
+            $liste->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeListe(Liste $liste): static
+    {
+        if ($this->listes->removeElement($liste)) {
+            // set the owning side to null (unless already changed)
+            if ($liste->getOwner() === $this) {
+                $liste->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function hasArticle(Article $article): bool
+    {
+        foreach ($this->getListes() as $liste) {
+            if ($liste->getArticle() === $article) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

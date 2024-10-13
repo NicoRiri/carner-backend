@@ -22,14 +22,14 @@ class Article
     private ?string $image = null;
 
     /**
-     * @var Collection<int, User>
+     * @var Collection<int, Liste>
      */
-    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'articles')]
-    private Collection $users;
+    #[ORM\OneToMany(targetEntity: Liste::class, mappedBy: 'article')]
+    private Collection $listes;
 
     public function __construct()
     {
-        $this->users = new ArrayCollection();
+        $this->listes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -62,27 +62,30 @@ class Article
     }
 
     /**
-     * @return Collection<int, User>
+     * @return Collection<int, Liste>
      */
-    public function getUsers(): Collection
+    public function getListes(): Collection
     {
-        return $this->users;
+        return $this->listes;
     }
 
-    public function addUser(User $user): static
+    public function addListe(Liste $liste): static
     {
-        if (!$this->users->contains($user)) {
-            $this->users->add($user);
-            $user->addArticle($this);
+        if (!$this->listes->contains($liste)) {
+            $this->listes->add($liste);
+            $liste->setArticle($this);
         }
 
         return $this;
     }
 
-    public function removeUser(User $user): static
+    public function removeListe(Liste $liste): static
     {
-        if ($this->users->removeElement($user)) {
-            $user->removeArticle($this);
+        if ($this->listes->removeElement($liste)) {
+            // set the owning side to null (unless already changed)
+            if ($liste->getArticle() === $this) {
+                $liste->setArticle(null);
+            }
         }
 
         return $this;

@@ -4,7 +4,9 @@ namespace App\Service;
 
 use App\DTO\ArticleDTO;
 use App\Entity\Article;
+use App\Entity\Liste;
 use App\Entity\User;
+use App\Entity\User2Article;
 use App\Exception\ArticleAlreadyInCart;
 use App\Exception\ArticleNotAlreadyInCart;
 use App\Exception\ArticleNotFound;
@@ -28,10 +30,11 @@ class ArticleService implements iArticleService
     {
         $userRepository = $this->entityManager->getRepository(User::class);
         $user = $userRepository->find($this->security->getUser());
-        $articles = $user->getArticles();
+        $articles = $user->getListes();
         $response = [];
         foreach ($articles as $article) {
-            $response[] = new ArticleDTO($article->getId(), $article->getNom(), $article->getImage());
+            $a = $article->getArticle();
+            $response[] = new ArticleDTO($a->getId(), $a->getNom(), $a->getImage(), $article->isOkay());
         }
         return $response;
     }
@@ -47,9 +50,14 @@ class ArticleService implements iArticleService
         $user = $userRepository->find($this->security->getUser());
         $article = $articleRepository->find($id);
         if ($article === null) throw new ArticleNotFound();
-        if ($user->getArticles()->contains($article)) throw new ArticleAlreadyInCart();
-        $article->addUser($user);
-        $this->entityManager->persist($article);
+        if ($user->hasArticle($article)) throw new ArticleAlreadyInCart();
+
+        $liste = new Liste();
+        $liste->setArticle($article);
+        $liste->setOwner($user);
+        $liste->setOkay(false);
+
+        $this->entityManager->persist($liste);
         $this->entityManager->flush();
     }
 
@@ -61,12 +69,15 @@ class ArticleService implements iArticleService
     {
         $userRepository = $this->entityManager->getRepository(User::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $listeRepository = $this->entityManager->getRepository(Liste::class);
         $user = $userRepository->find($this->security->getUser());
         $article = $articleRepository->find($id);
         if ($article === null) throw new ArticleNotFound();
-        if (!$user->getArticles()->contains($article)) throw new ArticleNotAlreadyInCart();
-        $user->removeArticle($article);
-        $this->entityManager->persist($user);
+        if (!$user->hasArticle($article)) throw new ArticleNotAlreadyInCart();
+
+        $liste = $listeRepository->findOneBy(['article' => $article, 'owner' => $user]);
+
+        $this->entityManager->remove($liste);
         $this->entityManager->flush();
     }
 
@@ -76,7 +87,7 @@ class ArticleService implements iArticleService
         $articles = $articleRepository->findAll();
         $response = [];
         foreach ($articles as $article) {
-            $response[] = new ArticleDTO($article->getId(), $article->getNom(), $article->getImage());
+            $response[] = new ArticleDTO($article->getId(), $article->getNom(), $article->getImage(), false);
         }
         return $response;
     }
@@ -109,6 +120,27 @@ class ArticleService implements iArticleService
         $article->setNom($name);
 
         $this->entityManager->persist($article);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @throws ArticleNotFound
+     * @throws ArticleNotAlreadyInCart
+     */
+    function setArticleStatut(int $id, bool $status): void
+    {
+        $userRepository = $this->entityManager->getRepository(User::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $listeRepository = $this->entityManager->getRepository(Liste::class);
+        $user = $userRepository->find($this->security->getUser());
+        $article = $articleRepository->find($id);
+        if ($article === null) throw new ArticleNotFound();
+        if (!$user->hasArticle($article)) throw new ArticleNotAlreadyInCart();
+
+        $liste = $listeRepository->findOneBy(['article' => $article, 'owner' => $user]);
+        $liste->setOkay($status);
+
+        $this->entityManager->persist($liste);
         $this->entityManager->flush();
     }
 }
