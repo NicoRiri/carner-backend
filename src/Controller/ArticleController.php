@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Exception\ArticleAlreadyInCart;
+use App\Exception\ArticleInCartWasModified;
 use App\Exception\ArticleNotAlreadyInCart;
 use App\Exception\ArticleNotFound;
 use App\Exception\FileNotFound;
@@ -38,6 +39,8 @@ class ArticleController extends AbstractController
             return $this->json(["error" => $e->getMessage()], Response::HTTP_NOT_FOUND);
         } catch (ArticleAlreadyInCart $e) {
             return $this->json(["error" => $e->getMessage()], Response::HTTP_CONFLICT);
+        } catch (ArticleInCartWasModified $e) {
+            return $this->json(["message" => $e->getMessage()], Response::HTTP_OK);
         }
     }
 
@@ -65,6 +68,13 @@ class ArticleController extends AbstractController
         } catch (ArticleNotAlreadyInCart $e) {
             return $this->json(["error" => $e->getMessage()], Response::HTTP_CONFLICT);
         }
+    }
+
+    #[Route('/api/cart', name: 'api.cart.clean', methods: ['DELETE'])]
+    public function cleanCart(): Response
+    {
+        $this->articleService->forceCleanCart();
+        return $this->json(["message" => "Cart has been cleared successfully"], Response::HTTP_OK);
     }
 
     #[Route('/api/article', name: 'api.article', methods: ['GET'])]

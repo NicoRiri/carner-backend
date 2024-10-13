@@ -185,4 +185,12 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
         return false;
     }
 
+    public function cleanCart($entityManager):void
+    {
+        foreach ($this->getListes() as $liste) {
+            $entityManager->remove($liste);
+        }
+        $entityManager->flush();
+    }
+
 }

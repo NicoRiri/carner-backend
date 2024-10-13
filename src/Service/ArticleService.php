@@ -8,10 +8,12 @@ use App\Entity\Liste;
 use App\Entity\User;
 use App\Entity\User2Article;
 use App\Exception\ArticleAlreadyInCart;
+use App\Exception\ArticleInCartWasModified;
 use App\Exception\ArticleNotAlreadyInCart;
 use App\Exception\ArticleNotFound;
 use App\Exception\FileNotFound;
 use App\Exception\MediaNameBadFormat;
+use App\Repository\ListeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Uid\Uuid;
@@ -20,12 +22,15 @@ class ArticleService implements iArticleService
 {
     private EntityManagerInterface $entityManager;
     private Security $security;
+    private ListeRepository $listeRepository;
 
-    public function __construct(EntityManagerInterface $entityManager, Security $security)
+    public function __construct(EntityManagerInterface $entityManager, Security $security, ListeRepository $listeRepository)
     {
         $this->entityManager = $entityManager;
         $this->security = $security;
+        $this->listeRepository = $listeRepository;
     }
+
     function getArticleOfUser(): array
     {
         $userRepository = $this->entityManager->getRepository(User::class);
@@ -42,15 +47,27 @@ class ArticleService implements iArticleService
     /**
      * @throws ArticleNotFound
      * @throws ArticleAlreadyInCart
+     * @throws ArticleInCartWasModified
      */
     function addArticleToUser(int $id): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $listeRepository = $this->entityManager->getRepository(Liste::class);
         $user = $userRepository->find($this->security->getUser());
         $article = $articleRepository->find($id);
         if ($article === null) throw new ArticleNotFound();
-        if ($user->hasArticle($article)) throw new ArticleAlreadyInCart();
+        if ($user->hasArticle($article)) {
+            $liste = $listeRepository->findOneBy(['article' => $article, 'owner' => $user]);
+            if ($liste->isOkay()) {
+                $liste->setOkay(false);
+                $this->entityManager->persist($liste);
+                $this->entityManager->flush();
+                throw new ArticleInCartWasModified();
+            } else {
+                throw new ArticleAlreadyInCart();
+            }
+        }
 
         $liste = new Liste();
         $liste->setArticle($article);
@@ -142,5 +159,12 @@ class ArticleService implements iArticleService
 
         $this->entityManager->persist($liste);
         $this->entityManager->flush();
+    }
+
+    function forceCleanCart(): void
+    {
+        $userRepository = $this->entityManager->getRepository(User::class);
+        $user = $userRepository->find($this->security->getUser());
+        $user->cleanCart($this->entityManager);
     }
 }
