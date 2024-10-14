@@ -37,8 +37,8 @@ services:
     networks:
       - carner.net
     ports:
-      - "8007:8080"
+      - "8080:8080"
 
 networks:
   carner.net:
-    external: true
+    driver: bridge
