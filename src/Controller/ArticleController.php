@@ -112,7 +112,7 @@ class ArticleController extends AbstractController
             return $this->json(["error" => $e->getMessage()], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->json(["message" => "Article removed successfully"], Response::HTTP_CREATED);
+        return $this->json(["message" => "Article removed successfully"], Response::HTTP_OK);
     }
 
 }
