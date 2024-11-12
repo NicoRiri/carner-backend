@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Exception\ArticleAlreadyInCart;
 use App\Exception\ArticleInCartWasModified;
+use App\Exception\ArticleMediaRequired;
+use App\Exception\ArticleNameRequired;
 use App\Exception\ArticleNotAlreadyInCart;
 use App\Exception\ArticleNotFound;
 use App\Exception\FileNotFound;
@@ -92,13 +94,25 @@ class ArticleController extends AbstractController
 
         try {
             $this->articleService->uploadArticle($uploadedFile, $name, $uploadDir);
-        } catch (FileNotFound $e) {
-            return $this->json(["error" => $e->getMessage()], Response::HTTP_NOT_FOUND);
-        } catch (MediaNameBadFormat $e) {
+        } catch (MediaNameBadFormat|ArticleNameRequired|ArticleMediaRequired $e) {
             return $this->json(["error" => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
 
-        return $this->json(["message" => "File uploaded successfully"], Response::HTTP_CREATED);
+        return $this->json(["message" => "Article created successfully"], Response::HTTP_CREATED);
+    }
+
+    #[Route('/api/article/{id}', name: 'api.remove.article', methods: ['DELETE'])]
+    public function remove(int $id): Response
+    {
+        $uploadDir = $this->getParameter('media_directory');
+
+        try {
+            $this->articleService->deleteArticle($id, $uploadDir);
+        } catch (ArticleNotFound $e) {
+            return $this->json(["error" => $e->getMessage()], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json(["message" => "Article removed successfully"], Response::HTTP_CREATED);
     }
 
 }

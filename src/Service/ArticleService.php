@@ -9,6 +9,8 @@ use App\Entity\User;
 use App\Entity\User2Article;
 use App\Exception\ArticleAlreadyInCart;
 use App\Exception\ArticleInCartWasModified;
+use App\Exception\ArticleMediaRequired;
+use App\Exception\ArticleNameRequired;
 use App\Exception\ArticleNotAlreadyInCart;
 use App\Exception\ArticleNotFound;
 use App\Exception\FileNotFound;
@@ -110,15 +112,14 @@ class ArticleService implements iArticleService
     }
 
     /**
-     * @throws FileNotFound
+     * @throws ArticleNameRequired
      * @throws MediaNameBadFormat
+     * @throws ArticleMediaRequired
      */
     function uploadArticle($file, $name, $uploadDir): void
     {
-        $userRepository = $this->entityManager->getRepository(User::class);
-        $user = $userRepository->find($this->security->getUser());
-
-        if (!$file) throw new FileNotFound();
+        if (empty($name)) throw new ArticleNameRequired();
+        if (!$file) throw new ArticleMediaRequired();
 
         $fileName = $file->getClientOriginalName();
 
@@ -137,6 +138,24 @@ class ArticleService implements iArticleService
         $article->setNom($name);
 
         $this->entityManager->persist($article);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @throws ArticleNotFound
+     */
+    function deleteArticle($id, $uploadDir): void
+    {
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $article = $articleRepository->find($id);
+        if ($article === null) throw new ArticleNotFound();
+
+        try {
+            unlink($uploadDir . "/" . $article->getImage());
+        } catch (\Exception) {
+            // L'image n'existe déjà plus
+        }
+        $this->entityManager->remove($article);
         $this->entityManager->flush();
     }
 
