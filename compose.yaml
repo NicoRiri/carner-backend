@@ -1,10 +1,12 @@
+# Abandon, je bosse avec kubernetes en phase de test pour ce projet
+
 version: '3.8'
 
 services:
   php-fpm:
     build:
       context: .
-      dockerfile: docker/symfony/dockerfile
+      dockerfile: docker/dockerfile
     volumes:
       - ./:/var/www/symfony
     networks:

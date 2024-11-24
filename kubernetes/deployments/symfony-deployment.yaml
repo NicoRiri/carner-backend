@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: symfony-app
+  labels:
+    app: symfony
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: symfony
+  template:
+    metadata:
+      labels:
+        app: symfony
+    spec:
+      containers:
+        - name: symfony-app
+          image: ririmenthe/symfofo:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: images-volume
+              mountPath: /var/www/symfony/public/media
+      volumes:
+        - name: images-volume
+          persistentVolumeClaim:
+            claimName: symfony-images-pvc
