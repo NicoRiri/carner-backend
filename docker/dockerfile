@@ -13,7 +13,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/symfony
 
-COPY . .
+COPY ./bin ./bin
+COPY ./config ./config
+COPY ./docker ./docker
+COPY ./migrations ./migrations
+COPY ./public ./public
+COPY ./src ./src
+COPY .env .env
+COPY composer.* symfony.lock ./
 
 RUN composer install --no-dev --optimize-autoloader
 
