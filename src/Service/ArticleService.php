@@ -3,19 +3,17 @@
 namespace App\Service;
 
 use App\DTO\ArticleDTO;
+use App\DTO\ArticleStateDTO;
 use App\Entity\Article;
 use App\Entity\Liste;
 use App\Entity\User;
-use App\Entity\User2Article;
 use App\Exception\ArticleAlreadyInCart;
 use App\Exception\ArticleInCartWasModified;
 use App\Exception\ArticleMediaRequired;
 use App\Exception\ArticleNameRequired;
 use App\Exception\ArticleNotAlreadyInCart;
 use App\Exception\ArticleNotFound;
-use App\Exception\FileNotFound;
 use App\Exception\MediaNameBadFormat;
-use App\Repository\ListeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Uid\Uuid;
@@ -24,13 +22,11 @@ class ArticleService implements iArticleService
 {
     private EntityManagerInterface $entityManager;
     private Security $security;
-    private ListeRepository $listeRepository;
 
-    public function __construct(EntityManagerInterface $entityManager, Security $security, ListeRepository $listeRepository)
+    public function __construct(EntityManagerInterface $entityManager, Security $security)
     {
         $this->entityManager = $entityManager;
         $this->security = $security;
-        $this->listeRepository = $listeRepository;
     }
 
     function getArticleOfUser(): array
@@ -41,7 +37,7 @@ class ArticleService implements iArticleService
         $response = [];
         foreach ($articles as $article) {
             $a = $article->getArticle();
-            $response[] = new ArticleDTO($a->getId(), $a->getNom(), $a->getImage(), $article->isOkay());
+            $response[] = new ArticleStateDTO($a->getId(), $a->getNom(), $a->getImage(), $article->isOkay());
         }
         return $response;
     }
@@ -106,7 +102,7 @@ class ArticleService implements iArticleService
         $articles = $articleRepository->findAll();
         $response = [];
         foreach ($articles as $article) {
-            $response[] = new ArticleDTO($article->getId(), $article->getNom(), $article->getImage(), false);
+            $response[] = new ArticleDTO($article->getId(), $article->getNom(), $article->getImage());
         }
         return $response;
     }

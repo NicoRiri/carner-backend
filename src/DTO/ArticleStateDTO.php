@@ -2,23 +2,24 @@
 
 namespace App\DTO;
 
-class ArticleDTO
+class ArticleStateDTO
 {
     public int $id;
     public string $name;
     public string $image;
+    public bool $okay;
 
     /**
-     * @param int $id
-     * @param string $name
-     * @param string $image
+     * @param $id
+     * @param $name
+     * @param $image
      */
-    public function __construct(int $id, string $name, string $image)
+    public function __construct($id, $name, $image, $okay)
     {
         $this->id = $id;
         $this->name = $name;
         $this->image = $image;
+        $this->okay = $okay;
     }
-
 
 }
