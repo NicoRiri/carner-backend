@@ -24,8 +24,7 @@ class Article
     /**
      * @var Collection<int, Liste>
      */
-    #[ORM\OneToMany(targetEntity: Liste::class, mappedBy: 'article')]
-    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
+    #[ORM\OneToMany(targetEntity: Liste::class, mappedBy: 'article', cascade: ['remove'])]
     private Collection $listes;
 
     public function __construct()
