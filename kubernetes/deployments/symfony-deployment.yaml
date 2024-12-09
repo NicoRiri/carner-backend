@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: symfony-app
-          image: ririmenthe/symfofo:latest
+          image: ririmenthe/carner:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 80
